@@ -1,0 +1,35 @@
+data=[]
+for root, dirs, files in os.walk('/Users/ylvaschuch/Desktop/Chopin/'):  #replace filename
+    for name in files:
+        if name.endswith((".musicxml")):
+            xml_data = music21.converter.parse(name)
+            data.append(xml_data)
+            
+print(data)
+
+score_data=[]
+for el in data:
+    print(el)
+    sample_score=helpers_simplify_score_for_rhythm_analysis(el)
+    print(sample_score)
+    print(sample_score.flat.getElementsByClass('TimeSignature')[0].ratioString)
+    for staff in sample_score.parts:
+        staff_name = staff.elements[1].clef.name
+        for measure in staff.getElementsByClass('Measure'):
+            if measure.measureNumber <= 2 and measure.measureNumber > 0:
+                print(staff_name + " measure " + str(measure.measureNumber))
+                for event in measure.recurse():
+                    label = ""
+                    if isinstance(event, music21.note.Note):
+                        label = "sounded"
+                    if isinstance(event, music21.note.Rest):
+                        label = "unsounded"
+                    try:
+                        tie_info = "tie_" + event.tie.type
+                    except:
+                        tie_info = ""
+                    if label != "":
+                        print(label, event.offset, event.duration.quarterLength, tie_info)
+    print("")
+    score_data+=sample_score
+print(score_data)    
